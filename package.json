@@ -1,0 +1,9 @@
+{
+  "name": "7939764251:AAFMB9b1QvgycFrPW39u_iiExLn7rPe-oMw",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "telegraf": "^4.16.3",
+    "axios": "^1.7.2"
+  }
+}
