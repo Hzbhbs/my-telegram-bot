@@ -1,12 +1,11 @@
-const { Telegraf } = require('telegraf');
+const { Telegraf, session } = require('telegraf');
 const axios = require('axios');
 
-const bot = new Telegraf(process.env.7939764251:AAFMB9b1QvgycFrPW39u_iiExLn7rPe-oMw);
-const channelId = 'CMD_CNN_1'; // آیدی کانال اجباری
-const adminId = 7692563400; // آیدی عددی ادمین (از @userinfobot بگیرید)
+const bot = new Telegraf(process.env.BOT_TOKEN);
+let channelId = '@CMD_CNN_1'; // آیدی کانال با @ یا عددی
+const adminId = 7692563400;
 const users = new Set();
 
-// زبان‌های پرکاربرد
 const languages = [
     { code: 'fa', name: 'فارسی' },
     { code: 'en', name: 'English' },
@@ -21,6 +20,9 @@ const languages = [
     { code: 'ja', name: '日本語' },
     { code: 'it', name: 'Italiano' }
 ];
+
+// فعال‌سازی سشن
+bot.use(session());
 
 // خوش‌آمدگویی و بررسی عضویت
 bot.start(async (ctx) => {
@@ -42,6 +44,7 @@ bot.start(async (ctx) => {
             });
         }
     } catch (error) {
+        console.error('خطا در بررسی عضویت:', error.message);
         ctx.reply('خطا! لطفاً مطمئن شوید ربات ادمین کانال است و دوباره امتحان کنید.');
     }
 });
@@ -54,27 +57,13 @@ bot.action(/lang_(.+)/, (ctx) => {
     ctx.reply(`زبان مقصد: ${langName}`);
 });
 
-// ترجمه متن با تشخیص زبان از IP
+// ترجمه متن با تشخیص زبان
 bot.on('text', async (ctx) => {
     if (!ctx.session?.targetLang) return ctx.reply('ابتدا زبان را انتخاب کنید.');
     const text = ctx.message.text;
-    const userIp = ctx.request?.ip || '127.0.0.1';
     let sourceLang = 'auto';
 
-    // تشخیص زبان از IP
-    try {
-        const response = await fetch(`http://ip-api.com/json/${userIp}`);
-        const data = await response.json();
-        const countryLangMap = {
-            'IR': 'fa', 'US': 'en', 'ES': 'es', 'CN': 'zh', 'IN': 'hi',
-            'SA': 'ar', 'FR': 'fr', 'DE': 'de', 'RU': 'ru', 'BR': 'pt',
-            'JP': 'ja', 'IT': 'it'
-        };
-        sourceLang = countryLangMap[data.countryCode] || 'auto';
-    } catch (error) {
-        console.error('خطا در تشخیص IP:', error);
-    }
-
+    // تشخیص زبان (بدون IP، چون ctx.request.ip در دسترس نیست)
     try {
         const response = await axios.post('https://libretranslate.com/translate', {
             q: text,
@@ -84,6 +73,7 @@ bot.on('text', async (ctx) => {
         });
         ctx.reply(`ترجمه: ${response.data.translatedText}`);
     } catch (error) {
+        console.error('خطا در ترجمه:', error.message);
         ctx.reply('خطا در ترجمه! دوباره امتحان کنید.');
     }
 });
@@ -97,13 +87,13 @@ bot.command('broadcast', async (ctx) => {
         try {
             await ctx.telegram.sendMessage(userId, message);
         } catch (error) {
-            console.error(`خطا در ارسال به ${userId}:`, error);
+            console.error(`خطا در ارسال به ${userId}:`, error.message);
         }
     }
     ctx.reply('پیام انبوه با موفقیت ارسال شد!');
 });
 
-// دستور برای تنظیم یا حذف کانال اجباری (فقط ادمین)
+// تنظیم یا حذف کانال اجباری
 bot.command('setchannel', async (ctx) => {
     if (ctx.from.id !== adminId) return ctx.reply('فقط ادمین می‌تواند کانال را تنظیم کند.');
     const newChannel = ctx.message.text.split(' ').slice(1).join(' ');
@@ -117,6 +107,7 @@ bot.command('setchannel', async (ctx) => {
                 ctx.reply('لطفاً یک کانال معتبر وارد کنید.');
             }
         } catch (error) {
+            console.error('خطا در تنظیم کانال:', error.message);
             ctx.reply('خطا! مطمئن شوید ربات ادمین کانال است.');
         }
     } else if (newChannel === 'remove') {
@@ -127,7 +118,6 @@ bot.command('setchannel', async (ctx) => {
     }
 });
 
-// وب‌هوک برای کلودفلر
-addEventListener('fetch', event => {
-    event.respondWith(bot.handleUpdate(event.request));
-});
+// برای long polling
+bot.launch();
+console.log('ربات شروع شد!');
