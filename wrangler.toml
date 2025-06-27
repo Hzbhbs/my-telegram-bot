@@ -1,0 +1,5 @@
+name = "my-telegram-bot"
+main = "index.js"
+compatibility_date = "2025-06-27"
+[vars]
+TELEGRAM_BOT_TOKEN = "7939764251:AAFMB9b1QvgycFrPW39u_iiExLn7rPe-oMw"
