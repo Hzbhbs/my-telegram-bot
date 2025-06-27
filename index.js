@@ -1,7 +1,7 @@
 const { Telegraf, session } = require('telegraf');
 const axios = require('axios');
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf(process.env.7939764251:AAFMB9b1QvgycFrPW39u_iiExLn7rPe-oMw);
 let channelId = '@CMD_CNN_1'; // آیدی کانال با @ یا عددی
 const adminId = 7692563400;
 const users = new Set();
